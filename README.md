@@ -4,13 +4,13 @@ This repository contains the code accompanying the bioRxiv preprint: [Selective 
 
 ### 1. Instructions to Run the Code:
 1. **Prepare the dataset:**  
-Run Prepare_Whole_data.ipynb to generate the dataset.
+Run 'Prepare_Whole_data.ipynb' to generate the dataset.
 
 2. **Simulate the model:**  
-Run Simulation_10_inputs.ipynb to simulate the model with any set of 10 input patterns.
+Run 'Simulation_10_inputs.ipynb' to simulate the model with any set of 10 input patterns.
 
 3. **Plot the results:**  
-You can generate various figures using the Plot_*.ipynb files.
+You can generate various figures using the 'Plot_*.ipynb' files.
 
 ### 2. Example Figures:
   
