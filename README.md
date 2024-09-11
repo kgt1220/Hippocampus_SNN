@@ -3,13 +3,13 @@
 This repository contains the code accompanying the bioRxiv preprint: [Selective inhibition in CA3: A mechanism for stable pattern completion through heterosynaptic plasticity](https://doi.org/10.1101/2024.08.16.608240)
 
 ### Instructions to Run the Code:
-**1. Prepare the dataset:**  
+1.  **Prepare the dataset:**  
 Run 'Prepare_Whole_data.ipynb' to generate the dataset.
 
-**2. Simulate the model:**  
+2.  **Simulate the model:**  
 Run 'Simulation_10_inputs.ipynb' to simulate the model with any set of 10 input patterns.
 
-**3. Plot the results:**  
+3.  **Plot the results:**  
 You can generate various figures using the 'Plot_*.ipynb' files.
 
 ### Example Figures:
