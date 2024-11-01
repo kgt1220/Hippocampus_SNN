@@ -385,7 +385,7 @@ class SNN:
                             if self.layers[8][ca1].q[1][ca3] >= self.q_max:
                                 self.layers[8][ca1].q[1][ca3] = self.q_max
        
-    def solve(self, inputs, CA3inputs, Noise, ER, time_step, only_DG, only_CA3, En_win, Re_win):
+    def solve(self, inputs, CA3inputs, Noise, ER, time_step, En_win, Re_win):
         t = 0.001*time_step
         
         if ER and (time_step+1) % En_win == 0 or not ER and (time_step+1) % Re_win == 0:
@@ -412,67 +412,62 @@ class SNN:
         self.outO_L = np.roll(self.outO_L, -self.N_O)
         self.outO_L[-1] = outO
             
-        if not only_CA3:
-            # To the DG Hilar cell
-            outDGH = np.array([])
-            for n, neuron in enumerate(self.layers[2]):
-                fired = neuron.solve([outIn], t, ER, n, En_win, Re_win)
-                outDGH = np.append(outDGH, fired)
-        
-            # To the DG mossy cell
-            outDGM = np.array([])
-            for n, neuron in enumerate(self.layers[3]):
-                fired = neuron.solve([self.outIn_L[3], outDGH], t, ER, n, En_win, Re_win)
-                outDGM = np.append(outDGM, fired)
-            
-            # To the DG basket cell
-            outDGB = np.array([])
-            for n, neuron in enumerate(self.layers[4]):
-                fired = neuron.solve([outDGM, outIn, outDGH], t, ER, n, En_win, Re_win)
-                outDGB = np.append(outDGB, fired)
+        # To the DG Hilar cell
+        outDGH = np.array([])
+        for n, neuron in enumerate(self.layers[2]):
+            fired = neuron.solve([outIn], t, ER, n, En_win, Re_win)
+            outDGH = np.append(outDGH, fired)
 
-            # To DG layer
-            outDG = np.array([])
-            for n, neuron in enumerate(self.layers[5]):
-                fired = neuron.solve([self.outIn_L[0], outDGB], t, ER, n, En_win, Re_win)
-                outDG = np.append(outDG, fired)
-            self.outDG_L = np.roll(self.outDG_L, -self.N_DG)
-            self.outDG_L[-1] = outDG
-        if not only_DG:
-            if only_CA3:
-                self.outDG_L = np.roll(self.outDG_L, -self.N_DG)
-                self.outDG_L[-1] = CA3inputs
-                
-            # To the CA3 layer
-            outCA3 = np.array([])
-            for n, neuron in enumerate(self.layers[6]):
-                fired = neuron.solve([self.outDG_L[0], outIn, self.outCA3_L[0], self.outCA3i_L[0], Noise], t, ER, n, En_win, Re_win)
-                neuron.update_trace(ER)
-                outCA3 = np.append(outCA3, fired)
-            self.outCA3_L = np.roll(self.outCA3_L, -self.N_CA3)
-            self.outCA3_L[-1] = outCA3
+        # To the DG mossy cell
+        outDGM = np.array([])
+        for n, neuron in enumerate(self.layers[3]):
+            fired = neuron.solve([self.outIn_L[3], outDGH], t, ER, n, En_win, Re_win)
+            outDGM = np.append(outDGM, fired)
 
-            # To the CA3 interneuron
-            outCA3i = np.array([])
-            for n, neuron in enumerate(self.layers[7]):
-                fired = neuron.solve([self.outDG_L[-1], self.outCA3_L[-1], self.outCA3i_L[0]], t, ER, n, En_win, Re_win)
-                neuron.update_trace(ER)
-                outCA3i = np.append(outCA3i, fired)
-            self.outCA3i_L = np.roll(self.outCA3i_L, -self.N_CA3i)
-            self.outCA3i_L[-1] = outCA3i
+        # To the DG basket cell
+        outDGB = np.array([])
+        for n, neuron in enumerate(self.layers[4]):
+            fired = neuron.solve([outDGM, outIn, outDGH], t, ER, n, En_win, Re_win)
+            outDGB = np.append(outDGB, fired)
 
-            # To the CA1 layer
-            outCA1 = np.array([])
-            for n, neuron in enumerate(self.layers[8]):
-                fired = neuron.solve([self.outO_L[0], self.outCA3_L[-1]], t, ER, n, En_win, Re_win)
-                neuron.update_trace(ER)
-                outCA1 = np.append(outCA1, fired)
-            self.priorCA1 = outCA1.copy()
-            
-            if not self.AL:
-                self.STDP_on_dpp()
-                self.STDP_on_Rc()
-                self.STDP_on_Rci()
-                self.STDP_on_Sc()
+        # To DG layer
+        outDG = np.array([])
+        for n, neuron in enumerate(self.layers[5]):
+            fired = neuron.solve([self.outIn_L[0], outDGB], t, ER, n, En_win, Re_win)
+            outDG = np.append(outDG, fired)
+        self.outDG_L = np.roll(self.outDG_L, -self.N_DG)
+        self.outDG_L[-1] = outDG
+                       
+        # To the CA3 layer
+        outCA3 = np.array([])
+        for n, neuron in enumerate(self.layers[6]):
+            fired = neuron.solve([self.outDG_L[0], outIn, self.outCA3_L[0], self.outCA3i_L[0], Noise], t, ER, n, En_win, Re_win)
+            neuron.update_trace(ER)
+            outCA3 = np.append(outCA3, fired)
+        self.outCA3_L = np.roll(self.outCA3_L, -self.N_CA3)
+        self.outCA3_L[-1] = outCA3
+
+        # To the CA3 interneuron
+        outCA3i = np.array([])
+        for n, neuron in enumerate(self.layers[7]):
+            fired = neuron.solve([self.outDG_L[-1], self.outCA3_L[-1], self.outCA3i_L[0]], t, ER, n, En_win, Re_win)
+            neuron.update_trace(ER)
+            outCA3i = np.append(outCA3i, fired)
+        self.outCA3i_L = np.roll(self.outCA3i_L, -self.N_CA3i)
+        self.outCA3i_L[-1] = outCA3i
+
+        # To the CA1 layer
+        outCA1 = np.array([])
+        for n, neuron in enumerate(self.layers[8]):
+            fired = neuron.solve([self.outO_L[0], self.outCA3_L[-1]], t, ER, n, En_win, Re_win)
+            neuron.update_trace(ER)
+            outCA1 = np.append(outCA1, fired)
+        self.priorCA1 = outCA1.copy()
+
+        if not self.AL:
+            self.STDP_on_dpp()
+            self.STDP_on_Rc()
+            self.STDP_on_Rci()
+            self.STDP_on_Sc()
         return 
 
